@@ -4,7 +4,7 @@
 
 # ==================== 全局变量配置 ====================
 # 脚本版本
-SCRIPT_VERSION="1.0.5"
+SCRIPT_VERSION="1.0.6"
 
 # 软件信息
 SOFTWARE_NAME="hivempos"
@@ -86,6 +86,19 @@ LANG_STRINGS[1,config_not_found]="配置文件不存在"
 LANG_STRINGS[1,press_enter]="按Enter键继续..."
 LANG_STRINGS[1,operation_failed]="操作失败"
 LANG_STRINGS[1,operation_success]="操作成功"
+LANG_STRINGS[1,fetching_version]="正在从GitHub获取最新版本号..."
+LANG_STRINGS[1,curl_failed]="curl请求失败 (退出码:"
+LANG_STRINGS[1,wget_failed]="wget请求失败 (退出码:"
+LANG_STRINGS[1,tools_required]="需要curl或wget工具来获取版本信息"
+LANG_STRINGS[1,parse_failed]="无法从GitHub页面解析版本号"
+LANG_STRINGS[1,invalid_format]="获取到无效的版本号格式:"
+LANG_STRINGS[1,version_success]="成功获取最新版本:"
+LANG_STRINGS[1,version_failed]="无法获取最新版本号，脚本无法继续执行"
+LANG_STRINGS[1,check_network]="请检查："
+LANG_STRINGS[1,check1]="1. 网络连接是否正常"
+LANG_STRINGS[1,check2]="2. GitHub仓库是否有已发布的版本"
+LANG_STRINGS[1,check3]="3. 仓库地址是否正确: https://github.com/hivecassiny/HiveMPOS"
+LANG_STRINGS[1,script_terminated]="脚本终止"
 
 # 英文字符串
 LANG_STRINGS[2,title]="=== Tesla HiveMPOS Management Script ==="
@@ -141,36 +154,23 @@ LANG_STRINGS[2,config_not_found]="Configuration file not found"
 LANG_STRINGS[2,press_enter]="Press Enter to continue..."
 LANG_STRINGS[2,operation_failed]="Operation failed"
 LANG_STRINGS[2,operation_success]="Operation successful"
+LANG_STRINGS[2,fetching_version]="Fetching latest version from GitHub..."
+LANG_STRINGS[2,curl_failed]="curl request failed (exit code:"
+LANG_STRINGS[2,wget_failed]="wget request failed (exit code:"
+LANG_STRINGS[2,tools_required]="curl or wget is required to fetch version information"
+LANG_STRINGS[2,parse_failed]="Unable to parse version number from GitHub page"
+LANG_STRINGS[2,invalid_format]="Invalid version number format retrieved:"
+LANG_STRINGS[2,version_success]="Successfully retrieved latest version:"
+LANG_STRINGS[2,version_failed]="Unable to retrieve latest version, script cannot continue"
+LANG_STRINGS[2,check_network]="Please check:"
+LANG_STRINGS[2,check1]="1. Network connectivity"
+LANG_STRINGS[2,check2]="2. Whether the GitHub repository has published releases"
+LANG_STRINGS[2,check3]="3. Repository URL is correct: https://github.com/hivecassiny/HiveMPOS"
+LANG_STRINGS[2,script_terminated]="Script terminated"
 
-# ==================== 新增：初始化版本函数 ====================
-init_software_version() {
-    # 首先尝试自动获取最新版本
-    local latest_version
-    latest_version=$(get_latest_version_from_page)
-    
-    if [[ $? -eq 0 ]] && [[ -n "$latest_version" ]]; then
-        SOFTWARE_VERSION="$latest_version"
-        print_success "成功获取最新版本: $SOFTWARE_VERSION"
-    else
-        # 如果获取失败，使用默认版本并退出
-        print_error "无法获取最新版本号，脚本无法继续执行"
-        print_info "请检查："
-        echo "  1. 网络连接是否正常"
-        echo "  2. GitHub仓库是否有已发布的版本"
-        echo "  3. 仓库地址是否正确: https://github.com/hivecassiny/HiveMPOS"
-        echo ""
-        print_error "脚本终止"
-        exit 1  # 按照要求，获取失败直接退出
-    fi
-    
-    # 设置下载URL（这里需要放到函数里，因为依赖SOFTWARE_VERSION）
-    DOWNLOAD_URL="https://github.com/hivecassiny/HiveMPOS/releases/download/$SOFTWARE_VERSION/${SOFTWARE_NAME}_linux_adm64.tar.gz"
-}
-
-# ==================== get_latest_version_from_page函数（保持不变） ====================
+# ==================== get_latest_version_from_page函数（优化版） ====================
 get_latest_version_from_page() {
-    # 注意：这里不能使用print_info等函数，因为还没有定义！
-    echo "正在从GitHub获取最新版本号..." >&2
+    echo "$(print_message fetching_version)" >&2
     
     local repo_url="https://github.com/hivecassiny/HiveMPOS/releases"
     local latest_tag=""
@@ -182,7 +182,7 @@ get_latest_version_from_page() {
         local curl_status=$?
         
         if [[ $curl_status -ne 0 ]]; then
-            echo "curl请求失败 (退出码: $curl_status)" >&2
+            echo "$(print_message curl_failed) $curl_status)" >&2
             return 1
         fi
     elif command -v wget &> /dev/null; then
@@ -190,26 +190,51 @@ get_latest_version_from_page() {
         local wget_status=$?
         
         if [[ $wget_status -ne 0 ]]; then
-            echo "wget请求失败 (退出码: $wget_status)" >&2
+            echo "$(print_message wget_failed) $wget_status)" >&2
             return 1
         fi
     else
-        echo "需要curl或wget工具来获取版本信息" >&2
+        echo "$(print_message tools_required)" >&2
         return 1
     fi
     
     if [[ -z "$latest_tag" ]]; then
-        echo "无法从GitHub页面解析版本号" >&2
+        echo "$(print_message parse_failed)" >&2
         return 1
     fi
     
     if [[ ! "$latest_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-        echo "获取到无效的版本号格式: $latest_tag" >&2
+        echo "$(print_message invalid_format) $latest_tag" >&2
         return 1
     fi
     
     echo "$latest_tag"
     return 0
+}
+
+# ==================== init_software_version函数（优化版） ====================
+init_software_version() {
+    # 首先尝试自动获取最新版本
+    local latest_version
+    latest_version=$(get_latest_version_from_page)
+    
+    if [[ $? -eq 0 ]] && [[ -n "$latest_version" ]]; then
+        SOFTWARE_VERSION="$latest_version"
+        print_success "$(print_message version_success) $SOFTWARE_VERSION"
+    else
+        # 如果获取失败，直接退出
+        print_error "$(print_message version_failed)"
+        print_info "$(print_message check_network)"
+        echo "  1. $(print_message check1)"
+        echo "  2. $(print_message check2)"
+        echo "  3. $(print_message check3)"
+        echo ""
+        print_error "$(print_message script_terminated)"
+        exit 1
+    fi
+    
+    # 设置下载URL
+    DOWNLOAD_URL="https://github.com/hivecassiny/HiveMPOS/releases/download/$SOFTWARE_VERSION/${SOFTWARE_NAME}_linux_adm64.tar.gz"
 }
 
 # ==================== 工具函数 ====================
