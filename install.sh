@@ -4,7 +4,7 @@
 
 # ==================== 全局变量配置 ====================
 # 脚本版本
-SCRIPT_VERSION="1.0.7"
+SCRIPT_VERSION="1.0.8"
 
 # 软件信息
 SOFTWARE_NAME="hivempos"
@@ -101,7 +101,7 @@ LANG_STRINGS[1,check3]="3. 仓库地址是否正确: https://github.com/hivecass
 LANG_STRINGS[1,script_terminated]="脚本终止"
 
 # 英文字符串
-LANG_STRINGS[2,title]="=== Tesla HiveMPOS Management Script ==="
+LANG_STRINGS[2,title]="=== HiveMPOS Management Script ==="
 LANG_STRINGS[2,script_version]="Script Version"
 LANG_STRINGS[2,software_version]="Software Version"
 LANG_STRINGS[2,menu_title]="Please select an operation"
@@ -408,7 +408,7 @@ install_service() {
     print_message creating_service
     cat > "$SERVICE_FILE" << EOF
 [Unit]
-Description=Tesla HiveMPOS Service
+Description=HiveMPOS Service
 After=network.target
 
 [Service]
@@ -417,7 +417,7 @@ User=root
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$INSTALL_DIR/$SOFTWARE_NAME
 Restart=on-failure
-RestartSec=10
+RestartSec=3
 StandardOutput=append:$LOG_DIR/service.log
 StandardError=append:$LOG_DIR/error.log
 Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -430,7 +430,7 @@ EOF
     # 创建配置文件示例
     if [[ ! -f "$CONFIG_FILE" ]]; then
         cat > "$CONFIG_FILE" << EOF
-# Tesla HiveMPOS Configuration
+# HiveMPOS Configuration
 # Generated on $(date)
 
 # Service settings
@@ -564,7 +564,7 @@ view_config() {
 show_language_menu() {
     clear
     echo "=========================================="
-    echo "    Tesla HiveMPOS Management Script"
+    echo "    HiveMPOS Management Script"
     echo "=========================================="
     echo ""
     echo "请选择语言 / Please select language:"
