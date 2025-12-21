@@ -4,7 +4,7 @@
 
 # ==================== 全局变量配置 ====================
 # 脚本版本
-SCRIPT_VERSION="1.0.9"
+SCRIPT_VERSION="1.0.10"
 
 # 软件信息
 SOFTWARE_NAME="hivempos"
@@ -383,7 +383,7 @@ install_service() {
     
     # 解压文件
     print_message extracting
-    tar -xzf "/tmp/$ARCHIVE_NAME" -C /tmp/ --no-same-owner --warning=no-unknown-keyword 2>/dev/null
+    tar -xzf "/tmp/$ARCHIVE_NAME" -C /tmp/
     if [[ $? -ne 0 ]] || [[ ! -d "/tmp/$EXTRACTED_NAME" ]]; then
         print_error "$(print_message extract_failed)"
         return 1
