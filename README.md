@@ -1,5 +1,4 @@
-# hiveMinerProxy
-hiveMinerProxy
+# hiveMPOS
 
 ### 一键安装脚本最新版本Linux amd64
   ```shell
