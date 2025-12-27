@@ -5,3 +5,4 @@ hiveMinerProxy
   ```shell
    bash <(curl -s -L https://raw.githubusercontent.com/hivecassiny/HiveMPOS/main/install.sh)
   ```
+
